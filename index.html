@@ -1,0 +1,449 @@
+<!doctype html><html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fridas HP-coach — komplett</title>
+<style>
+  :root{
+    --paper:#FBF9F6;--panel:#FFFFFF;--sunk:#F3EFE9;--ink:#211C1A;--ink-soft:#4B433E;--muted:#7C746C;
+    --line:#E8E1D7;--line-soft:#F0EBE3;--coral:#CF5233;--coral-deep:#A63E24;--coral-wash:#F8E6DF;
+    --slate:#3C5064;--slate-wash:#E6ECF1;--good:#2E7D5B;--good-wash:#E4F0E9;--warn:#B9741F;--bad:#C0392B;--bad-wash:#F7E4E1;
+    --shadow:0 1px 2px rgba(33,28,26,.05),0 10px 30px rgba(33,28,26,.06);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono","Roboto Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --paper:#14120F;--panel:#1C1916;--sunk:#100E0C;--ink:#EFEAE2;--ink-soft:#C7C0B6;--muted:#8E857A;
+    --line:#2E2822;--line-soft:#241F1A;--coral:#E7795C;--coral-deep:#F0906F;--coral-wash:#331B12;
+    --slate:#8FB0CB;--slate-wash:#182631;--good:#57BD8E;--good-wash:#14261D;--warn:#D39B4E;--bad:#E27567;--bad-wash:#301713;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 34px rgba(0,0,0,.4);}}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .wrap{padding:clamp(16px,3vw,32px) clamp(12px,3vw,28px) 72px;max-width:1240px;margin:0 auto;}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--coral);margin:0 0 10px;}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(26px,4.5vw,38px);line-height:1.05;letter-spacing:-.01em;margin:0 0 10px;}
+  .lede{font-size:14.5px;color:var(--ink-soft);max-width:80ch;margin:0;}
+  .lede a{color:var(--coral-deep);}
+  section{margin-top:clamp(22px,3.5vw,34px);}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(18px,2.6vw,22px);letter-spacing:-.01em;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 14px;max-width:74ch;}
+  .kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;display:flex;align-items:center;gap:12px;}
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line);}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);}
+  .grid2{display:grid;grid-template-columns:1.05fr 1fr;gap:16px;align-items:start;}
+  .authbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 0;padding:10px 14px;background:var(--slate-wash);border:1px solid var(--line);border-radius:12px;font-size:13px;}
+  .authbar .amuted{color:var(--muted);}
+  .authbar .aok{color:var(--slate);font-weight:600;}
+  .authbar input[type="email"]{font-family:var(--sans);font-size:13px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);}
+  .authbar input[type="email"]:focus{outline:2px solid var(--coral);outline-offset:1px;}
+
+  .gauge{display:flex;gap:20px;align-items:center;}
+  .gauge .num{font-family:var(--serif);font-weight:600;font-size:clamp(42px,9vw,58px);line-height:.9;color:var(--coral);font-variant-numeric:tabular-nums;}
+  .gauge .num.none{color:var(--muted);}
+  .gauge .meta{display:flex;flex-direction:column;gap:7px;font-size:13px;color:var(--ink-soft);}
+  .gauge .meta .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .bar{height:9px;border-radius:999px;background:var(--sunk);position:relative;overflow:hidden;}
+  .bar .fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--coral-deep),var(--coral));border-radius:999px;}
+  .bar .tgt{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);}
+  .pace{font-size:12.5px;color:var(--muted);margin-top:12px;}.pace b{color:var(--ink-soft);}
+  .recs{display:flex;flex-direction:column;gap:9px;}
+  .rec{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 14px;box-shadow:var(--shadow);}
+  .rec .rk{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:16px;background:var(--coral-wash);color:var(--coral-deep);}
+  .rec.p1 .rk{background:var(--coral);color:#fff;}
+  .rec .nm{font-size:13px;color:var(--ink);font-weight:600;}.rec .tip{font-size:11.5px;color:var(--muted);}
+  .rec .stat{text-align:right;font-family:var(--mono);font-size:11px;color:var(--muted);}.rec .stat b{display:block;font-size:14px;color:var(--ink);}
+  .empty{background:var(--sunk);border:1px dashed var(--line);border-radius:12px;padding:16px;text-align:center;color:var(--muted);font-size:13px;}
+  .praise{background:var(--good-wash);border:1px solid var(--good);border-radius:12px;padding:14px;font-size:13px;color:var(--ink-soft);}.praise b{color:var(--good);}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;}
+  .toolbar > div{display:flex;flex-direction:column;gap:5px;}
+  label.f{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  select,input[type="date"]{font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:9px;padding:9px 11px;}
+  select:focus,input:focus{outline:2px solid var(--coral);outline-offset:1px;}
+  .passchips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .chip{font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--sunk);color:var(--muted);}
+  .chip.done{background:var(--good-wash);border-color:var(--good);color:var(--good);}
+  .chip.cur{border-color:var(--coral);color:var(--coral-deep);}
+
+  .splitview{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:18px;align-items:start;}
+  .pdfpane{position:sticky;top:12px;}
+  .pdfscroll{width:100%;height:82vh;overflow:auto;border:1px solid var(--line);border-radius:12px;background:#e9e9ec;box-shadow:var(--shadow);padding:10px;}
+  .pdfscroll canvas{display:block;width:100%;height:auto;margin:0 auto 10px;box-shadow:0 1px 4px rgba(0,0,0,.15);background:#fff;border-radius:2px;}
+  .pdfscroll .loading{color:var(--muted);font-size:13px;padding:28px 16px;text-align:center;}
+  .pdfbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+  .pdfbar .t{font-weight:650;font-size:14px;}
+  .pdfbar a{font-size:12.5px;color:var(--coral-deep);font-weight:600;text-decoration:none;}
+  .pdfnote{font-size:11.5px;color:var(--muted);margin:8px 0 0;}
+  .answerpane{min-width:0;}
+
+  .timer{display:flex;align-items:center;gap:10px;background:var(--slate-wash);border-radius:11px;padding:9px 13px;margin:0 0 10px;flex-wrap:wrap;}
+  .timer .tlbl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--slate);}
+  .timer .tdisp{font-family:var(--mono);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);min-width:60px;}
+  .timer .tdisp.done{color:var(--bad);}
+  .dphead{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--coral-deep);margin:16px 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .dphead .rec{letter-spacing:0;text-transform:none;color:var(--muted);}
+  .dphead .elfwarn{letter-spacing:0;text-transform:none;color:var(--warn);}
+  .qrow{display:grid;grid-template-columns:30px 1fr;gap:9px;align-items:center;padding:3px 0;}
+  .qrow .qn{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;}
+  .opts{display:flex;gap:6px;flex-wrap:wrap;}
+  .opt{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--sunk);color:var(--ink-soft);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer;display:grid;place-items:center;}
+  .opt:hover{border-color:var(--coral);}
+  .opt.sel{background:var(--slate);color:#fff;border-color:var(--slate);}
+  .opt.correct{background:var(--good);color:#fff;border-color:var(--good);}
+  .opt.wrong{background:var(--bad);color:#fff;border-color:var(--bad);}
+  .opt.miss{border-color:var(--good);color:var(--good);border-width:2px;}
+  .opt:disabled{cursor:default;}
+  .passbtns{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;}
+  button{font-family:var(--sans);font-size:13.5px;font-weight:600;border-radius:9px;padding:9px 15px;border:1px solid transparent;cursor:pointer;}
+  button.primary{background:var(--coral);color:#fff;}button.primary:hover{background:var(--coral-deep);}
+  button.ghost{background:transparent;color:var(--ink-soft);border-color:var(--line);}button.ghost:hover{background:var(--sunk);}
+  button.mini{padding:6px 11px;font-size:12.5px;}
+  button:focus-visible{outline:2px solid var(--coral);outline-offset:2px;}
+  .passresult{font-size:13px;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--sunk);}
+  .passresult b{color:var(--ink);}.passresult .miss{color:var(--muted);font-family:var(--mono);font-size:12px;margin-top:6px;}
+  .savebar{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap;}
+  .hint{font-size:12px;color:var(--muted);}
+
+  .chartwrap{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 18px 10px;box-shadow:var(--shadow);}
+  svg.chart{width:100%;height:auto;display:block;}
+  .chart .grid-line{stroke:var(--line);stroke-width:1;}.chart .tgt-line{stroke:var(--coral);stroke-width:1.5;stroke-dasharray:4 4;}
+  .chart .trend{fill:none;stroke:var(--slate);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;}
+  .chart .pt{fill:var(--panel);stroke:var(--slate);stroke-width:2;}.chart .pt.last{fill:var(--coral);stroke:var(--coral);}
+  .chart text{fill:var(--muted);font-family:var(--mono);font-size:10px;}.chart text.val{fill:var(--coral-deep);font-weight:700;}
+  .dpbars{display:grid;grid-template-columns:1fr 1fr;gap:9px 20px;}
+  .dpb{display:grid;grid-template-columns:38px 1fr 40px;gap:9px;align-items:center;font-size:12px;}
+  .dpb .c{font-family:var(--mono);font-weight:700;color:var(--ink);}
+  .dpb .track{height:8px;border-radius:999px;background:var(--sunk);position:relative;}
+  .dpb .fl{height:100%;border-radius:999px;}
+  .dpb .fl.ok{background:var(--good);}.dpb .fl.mid{background:var(--warn);}.dpb .fl.low{background:var(--coral);}.dpb .fl.none{background:var(--line);}
+  .dpb .pct{font-family:var(--mono);text-align:right;color:var(--ink-soft);}
+  .dpb .tgtmark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink-soft);opacity:.5;}
+  .insight{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line-soft);font-size:13.5px;color:var(--ink-soft);}
+  .insight:last-child{border-bottom:0;}
+  .insight .ico{flex:none;font-size:15px;}
+  .insight b{color:var(--ink);}
+  .revrow{padding:10px 0;border-bottom:1px solid var(--line-soft);}
+  .revrow:last-child{border-bottom:0;}
+  .revrow .revc{font-family:var(--mono);font-weight:700;font-size:12px;color:var(--coral-deep);margin-bottom:5px;}
+  .revrow .revc .amuted{color:var(--muted);font-weight:400;}
+  .revline{font-size:12.5px;color:var(--ink-soft);padding:2px 0;}
+  .revline .revsrc{color:var(--muted);font-family:var(--mono);font-size:11px;}
+  .dpb .up{color:var(--good);}.dpb .down{color:var(--coral);}.dpb .flat{color:var(--muted);}
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:var(--shadow);}
+  table{border-collapse:collapse;width:100%;min-width:520px;}
+  th,td{text-align:left;padding:10px 14px;font-size:13px;}
+  thead th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);}
+  tbody tr{border-bottom:1px solid var(--line-soft);}tbody tr:last-child{border-bottom:0;}
+  td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;}td.tot{font-weight:700;color:var(--coral-deep);}
+  .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:6px;}.del:hover{color:var(--coral);background:var(--coral-wash);}
+  .datarow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .foot{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);}.foot b{color:var(--ink-soft);}
+  @media (max-width:900px){.grid2{grid-template-columns:1fr;}.splitview{grid-template-columns:1fr;}.pdfpane{position:static;}.pdfpane .pdfscroll{height:62vh;}.dpbars{grid-template-columns:1fr;}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body><div class="wrap">
+
+  <p class="eyebrow">Högskoleprovet · komplett träningscoach</p>
+  <h1>Fridas HP-coach</h1>
+  <p class="lede">Frågorna (UHR:s officiella provhäfte) visas till vänster, dina svar klickar du i till höger. Coachen rättar automatiskt mot facit, visar vilka frågor du missade, tar tid och följer din utveckling mot 1,2. Kräver internet (häftena laddas från studera.nu).</p>
+  <div id="authbar" class="authbar"></div>
+
+  <section><div class="grid2">
+    <div class="card"><p class="kicker" style="margin-bottom:16px">Läget</p>
+      <div class="gauge"><div class="num none" id="gNum">–</div>
+        <div class="meta"><div><span class="lbl">Est. resultat</span><div class="bar" id="gBar"><div class="fill" style="width:0%"></div><div class="tgt" style="left:58%"></div></div></div>
+        <div style="font-size:12.5px">Mål <b>1,20</b> · streck = mål</div></div></div>
+      <p class="pace" id="pace">Inga hela prov loggade än.</p></div>
+    <div class="card"><p class="kicker" style="margin-bottom:16px">Träna härnäst</p><div class="recs" id="recs"></div></div>
+  </div></section>
+
+  <section>
+    <h2>Gör ett prov</h2>
+    <p class="sub">Välj prov och provpass. Läs frågorna i häftet, ta tid, klicka i svaren, och tryck <b>Rätta passet</b>. När du gjort de pass du vill: <b>Logga hela provet</b>.</p>
+    <div class="toolbar">
+      <div><label class="f" for="selProv">Prov</label><select id="selProv"></select></div>
+      <div><label class="f" for="selPass">Provpass</label><select id="selPass"></select></div>
+      <div><label class="f" for="selDate">Datum</label><input type="date" id="selDate"></div>
+    </div>
+    <div class="passchips" id="passChips"></div>
+    <div class="splitview">
+      <div class="pdfpane">
+        <div class="pdfbar"><span class="t" id="pdfTitle">Provhäfte</span><a id="pdfOpen" target="_blank" rel="noopener">Öppna i ny flik ↗</a></div>
+        <div id="pdf" class="pdfscroll"><div class="loading">Laddar häfte…</div></div>
+        <p class="pdfnote">Obs: den engelska delen (ELF) saknas i häftet av upphovsrättsskäl — men du kan ändå klicka i ELF-svar till höger (facit finns), eller hoppa över den.</p>
+      </div>
+      <div class="answerpane" id="answerpane"></div>
+    </div>
+    <div class="savebar"><button class="primary" id="saveBtn">Logga hela provet</button><span class="hint" id="saveMsg"></span></div>
+  </section>
+
+  <section><div class="grid2">
+    <div><p class="kicker">Utveckling · skattat totalresultat</p><div class="chartwrap" id="chartWrap"></div></div>
+    <div><p class="kicker">Senaste träffsäkerhet per delprov</p><div class="card"><div class="dpbars" id="dpbars"></div>
+      <p class="hint" style="margin-top:14px">Streck = ungefärlig nivå för 1,2 (verbal ~74 %, kvant ~66 %).</p></div></div>
+  </div></section>
+
+  <section><h2>Insikter</h2><p class="sub">Vad datan säger om var du tappar poäng och om du är i takt mot 1,2.</p><div class="card"><div id="insights"></div></div></section>
+  <section><h2>Repetera — frågorna du missat</h2><p class="sub">Gå tillbaka till häftena och nöt exakt dessa. Grupperat per delprov, senaste först.</p><div class="card"><div id="review"></div></div></section>
+
+  <section><h2>Historik</h2><div class="tablewrap" id="histWrap"></div>
+    <div class="datarow"><button class="ghost" id="exportBtn">Exportera</button><button class="ghost" id="importBtn">Importera</button><button class="ghost" id="wipeBtn">Rensa allt</button><input type="file" id="importFile" accept="application/json" style="display:none"></div></section>
+
+  <p class="foot"><b>Om normeringen:</b> skattat resultat är en uppskattning kalibrerad mot vt2025 — trenden är säkrast; rättningen mot facit är exakt. Data sparas bara i den här webbläsaren (exportera en kopia om du byter dator). <b>Källa:</b> UHR / studera.nu — provhäften bäddas in från studera.nu, facit och normering därifrån. Privat träningsverktyg.</p>
+
+</div>
+<script>
+(function(){
+  "use strict";
+  if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}
+  var pdfToken=0;
+  function renderPdf(url){
+    var box=document.getElementById("pdf");box.innerHTML='<div class="loading">Laddar häfte…</div>';
+    if(!window.pdfjsLib){box.innerHTML='<div class="loading">PDF-läsaren kunde inte laddas (internet?). Använd "Öppna i ny flik".</div>';return;}
+    var my=++pdfToken;
+    pdfjsLib.getDocument(url).promise.then(function(pdf){
+      if(my!==pdfToken)return;box.innerHTML="";
+      var n=pdf.numPages;
+      (function page(i){
+        if(i>n||my!==pdfToken)return;
+        pdf.getPage(i).then(function(pg){
+          if(my!==pdfToken)return;
+          var v0=pg.getViewport({scale:1}),scale=Math.max(0.4,(box.clientWidth-28)/v0.width),vp=pg.getViewport({scale:scale*1.6});
+          var c=document.createElement("canvas");c.width=vp.width;c.height=vp.height;box.appendChild(c);
+          pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise.then(function(){page(i+1);});
+        });
+      })(1);
+    }).catch(function(e){if(my!==pdfToken)return;box.innerHTML='<div class="loading">Kunde inte ladda häftet ('+(e&&e.message||e)+'). Använd "Öppna i ny flik".</div>';});
+  }
+  var KEY="frida_hp_complete";
+  var EXAM=new Date(2026,9,18), V_TARGET=0.74,K_TARGET=0.66, LETTERS=["A","B","C","D","E"];
+  var DP={
+    ORD:{name:"Ordförståelse",half:"v",lev:1.00,tip:"Bygg ordförråd dagligen i Anki."},
+    LÄS:{name:"Svensk läsförståelse",half:"v",lev:0.45,tip:"Läs frågan först, skumläs efter svaret."},
+    MEK:{name:"Meningskomplettering",half:"v",lev:0.80,tip:"Samma ordförråd som ORD + språkkänsla."},
+    ELF:{name:"Engelsk läsförståelse",half:"v",lev:0.50,tip:"Läs frågan först. Säkra det du kan."},
+    XYZ:{name:"Matematisk problemlösning",half:"q",lev:0.60,tip:"Repetera grundformler. Prova svarsalternativ baklänges."},
+    KVA:{name:"Kvantitativa jämförelser",half:"q",lev:0.85,tip:"Testa värden (0,1,-1,bråk), eliminera."},
+    NOG:{name:"Kvantitativa resonemang",half:"q",lev:0.90,tip:"Lär formatet: avgör OM info räcker."},
+    DTK:{name:"Diagram, tabeller, kartor",half:"q",lev:0.70,tip:"Uppskatta i stället för räkna exakt."}
+  };
+  var DP_ORDER=["ORD","MEK","LÄS","ELF","XYZ","KVA","NOG","DTK"];
+  var REC={ORD:3,LÄS:22,MEK:8,ELF:22,XYZ:12,KVA:10,NOG:10,DTK:23};
+  var SEG={v:[{code:"ORD",from:0,to:10,opts:5},{code:"LÄS",from:10,to:20,opts:4},{code:"MEK",from:20,to:30,opts:4},{code:"ELF",from:30,to:40,opts:4}],
+           q:[{code:"XYZ",from:0,to:12,opts:4},{code:"KVA",from:12,to:22,opts:4},{code:"NOG",from:22,to:28,opts:5},{code:"DTK",from:28,to:40,opts:4}]};
+  var PROV=[
+    {id:"vt2025",label:"Våren 2025",date:"2025-04-05",passes:[
+      {t:"v",a:"DBDECDABECCDBDBABDCABBCDAACBADDDBDBACCAA"},{t:"q",a:"DCBCABBBCCACBDCCCDAAAADECDBDBCABBBCDDBAB"},
+      {t:"v",a:"EBCCEAABADCBDCABDDACCACBDDBDCADBDCABDCCB"},{t:"q",a:"CABCDCCDACBBBCAADABDBACDACAEDDCCACDBAABB"}]},
+    {id:"ht2024",label:"Hösten 2024",date:"2024-10-20",passes:[
+      {t:"q",a:"DCBBDDBCADABABABCCADADACCABEADDDCCABBCBA"},{t:"v",a:"CDADEEBDECBDABBACDADDDCBBAABDCCDCDABCBBD"},
+      {t:"q",a:"DABCADBACCABCBAACCADDCDAECEACCCAADBDDCDB"},{t:"v",a:"EDACBDBDDBDACCDDBCDBBCDABCACDCBCDACDAACA"}]},
+    {id:"vt2024",label:"Våren 2024",date:"2024-04-13",passes:[
+      {t:"v",a:"BEDABDDCACBCDBCDCBAADCBACBDBCADBDACACADD"},{t:"q",a:"BDDBABCDACDBAAADADBBBCECEDCBACBBCACADBAD"},
+      {t:"v",a:"BEEDACBCACCBDABBABDDCAADCCDBBBACDDBACDBC"},{t:"q",a:"DCBACDCDAAACDCBACADCBBCADCAEDCCADDCBCABB"}]},
+    {id:"ht2023",label:"Hösten 2023",date:"2023-10-22",passes:[
+      {t:"q",a:"CCABDDCCDCDDAACBBBBCDDCECBEDBCCCABBABADD"},{t:"v",a:"EEBDBACCCADBACADDACBACDBADBCAAADDCBDBBBA"},
+      {t:"q",a:"BCDBABAADCBCCCACBAACBDECDACBCBCCBDDABADA"},{t:"v",a:"BEADBCDCEBDDDBACCABDADCCBABDCDDBCDACADBC"}]}
+  ];
+  var provById={}; PROV.forEach(function(p){provById[p.id]=p;});
+  PROV.forEach(function(p){p.passes.forEach(function(pa,i){if(pa.a.length!==40)console.error("FACIT-FEL",p.id,i);});});
+  var PBASE="https://www.studera.nu/globalassets/05-hogskoleprovet/";
+  var PDFS={
+    vt2025:{dir:"hp-2025-04-05/",v:["provpass-2-verb-utan-elf.pdf","provpass-4-verb-utan-elf.pdf"],q:["provpass-3-kvant.pdf","provpass-5-kvant.pdf"]},
+    ht2024:{dir:"hp-2024-10-20/",v:["provpass-3-verb-utan-elf.pdf","provpass-5-verb-utan-elf.pdf"],q:["provpass-1-kvant.pdf","provpass-4-kvant.pdf"]},
+    vt2024:{dir:"hp-2024-04-13/",v:["provpass-1-verb-utan-elf.pdf","provpass-4-verb-utan-elf.pdf"],q:["provpass-2-kvant.pdf","provpass-5-kvant.pdf"]},
+    ht2023:{dir:"hp-2023-10-22/",v:["provpass-3-verb-utan-elf.pdf","provpass-5-verb_utan-elf.pdf"],q:["provpass-2-kvant.pdf","provpass-4-kvant.pdf"]}
+  };
+  function pdfUrl(id,key){var p=PDFS[id];return PBASE+p.dir+p[key[0]][+key.slice(1)];}
+
+  function passesOf(prov){var v=[],q=[],out=[];prov.passes.forEach(function(pa){(pa.t==="v"?v:q).push(pa);});
+    v.forEach(function(pa,i){out.push({key:"v"+i,t:"v",label:"Verbalt provpass "+(i+1),facit:pa.a});});
+    q.forEach(function(pa,i){out.push({key:"q"+i,t:"q",label:"Kvantitativt provpass "+(i+1),facit:pa.a});});return out;}
+
+  function load(){try{var s=JSON.parse(localStorage.getItem(KEY));return Array.isArray(s)?s:[];}catch(e){return[];}}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(sessions));}catch(e){} schedulePush();}
+  var sessions=load();
+  // ---- Supabase moln-synk ----
+  var SUPABASE_URL="https://aancjrosesibpycqwqlf.supabase.co";
+  var SUPABASE_KEY="sb_publishable_Okn5sYY13YMRHwsdfmGVVg_2EZocGze";
+  var sb=(SUPABASE_URL&&SUPABASE_KEY&&window.supabase)?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+  var user=null,pushTimer=null,syncMsg="";
+  function setSync(t){syncMsg=t;var el=document.getElementById("syncStatus");if(el)el.textContent=t;}
+  function pushRemote(){if(!sb||!user)return;setSync("Sparar…");sb.from("hp_data").upsert({user_id:user.id,data:sessions,updated_at:new Date().toISOString()}).then(function(r){setSync(r.error?"Molnfel — är SQL:en körd?":"Sparat i molnet ✓");});}
+  function schedulePush(){if(!sb||!user)return;clearTimeout(pushTimer);pushTimer=setTimeout(pushRemote,700);}
+  function pullRemote(){if(!sb||!user)return;setSync("Hämtar…");sb.from("hp_data").select("data").eq("user_id",user.id).maybeSingle().then(function(r){if(r.error){setSync("Molnfel — är SQL:en körd?");return;}if(r.data&&Array.isArray(r.data.data)){sessions=r.data.data;try{localStorage.setItem(KEY,JSON.stringify(sessions));}catch(e){}renderAll();setSync("Synkad ✓");}else{pushRemote();}});}
+  function renderAuth(){var bar=document.getElementById("authbar");if(!bar)return;
+    if(!sb){bar.innerHTML='<span class="amuted">Molnsynk av — data sparas bara i denna webbläsare.</span>';return;}
+    if(user){bar.innerHTML='<span class="aok">☁ Inloggad: '+user.email+'</span> <span id="syncStatus" class="amuted">'+syncMsg+'</span> <button type="button" class="ghost mini" id="btnOut">Logga ut</button>';document.getElementById("btnOut").addEventListener("click",function(){sb.auth.signOut();});}
+    else{bar.innerHTML='<span class="amuted">☁ Logga in för att synka mellan enheter:</span> <input type="email" id="authEmail" placeholder="din@mejl.se" autocomplete="email"> <button type="button" class="primary mini" id="btnIn">Skicka länk</button> <span id="authMsg" class="amuted"></span>';
+      document.getElementById("btnIn").addEventListener("click",function(){var em=document.getElementById("authEmail").value.trim();if(!em)return;document.getElementById("authMsg").textContent="Skickar…";sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:window.location.href}}).then(function(r){document.getElementById("authMsg").textContent=r.error?("Fel: "+r.error.message):"Kolla mejlen för inloggningslänken!";});});}
+  }
+  function round05(x){return Math.round(x*20)/20;}function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+  function normV(r){return round05(clamp(1.0+(r-51.5)*0.02857,0,2));}function normK(r){return round05(clamp(1.0+(r-46)*0.02632,0,2));}
+  function fmt(x){return x==null?"–":x.toFixed(2).replace(".",",");}
+  function todayISO(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+  function weeksLeft(){return Math.ceil((EXAM-new Date())/(7*864e5));}
+  function metrics(s){function half(c){var t=0,r=0,ok=true;c.forEach(function(x){var v=s.results[x];if(v&&v.t){t+=v.t;r+=v.r;}else ok=false;});return ok&&t===80?r:null;}
+    var vR=half(["ORD","LÄS","MEK","ELF"]),kR=half(["XYZ","KVA","NOG","DTK"]);
+    var vN=vR!=null?normV(vR):null,kN=kR!=null?normK(kR):null,tot=(vN!=null&&kN!=null)?round05((vN+kN)/2):null;
+    return {vRaw:vR,kRaw:kR,vN:vN,kN:kN,tot:tot};}
+  function sortedAsc(){return sessions.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:a.id-b.id;});}
+  function latestFullTotal(){var s=sortedAsc();for(var i=s.length-1;i>=0;i--){var m=metrics(s[i]);if(m.tot!=null)return m.tot;}return null;}
+  function latestAcc(){var s=sortedAsc(),o={},i,c;for(i=s.length-1;i>=0;i--){for(c in s[i].results){if(o[c]==null&&s[i].results[c]&&s[i].results[c].t)o[c]=s[i].results[c].r/s[i].results[c].t;}}return o;}
+  function delprovHistory(c){return sortedAsc().map(function(s){var x=s.results[c];return x&&x.t?x.r/x.t:null;}).filter(function(v){return v!=null;});}
+  function trendArrow(v){if(v.length<2)return '';var d=v[v.length-1]-v[v.length-2];return d>0.03?' <span class="up">↑</span>':d<-0.03?' <span class="down">↓</span>':' <span class="flat">→</span>';}
+
+  function renderGauge(){var tot=latestFullTotal(),num=document.getElementById("gNum"),fill=document.querySelector("#gBar .fill"),pace=document.getElementById("pace"),wl=weeksLeft();
+    document.querySelector("#gBar .tgt").style.left=((1.2-0.5)/1.2*100)+"%";
+    if(tot==null){num.textContent="–";num.className="num none";fill.style.width="0%";pace.innerHTML="Inga hela prov loggade än. "+(wl>0?("<b>"+wl+" veckor</b> kvar till 18 okt."):"");return;}
+    num.textContent=fmt(tot);num.className="num";fill.style.width=clamp((tot-0.5)/1.2*100,0,100)+"%";
+    var diff=round05(1.2-tot);pace.innerHTML=(tot>=1.2?"<b>På eller över mål.</b> Håll nivån.":"<b>"+fmt(diff)+"</b> kvar till målet 1,20.")+" "+(wl>0?("<b>"+wl+" veckor</b> kvar."):"");}
+  function renderRecs(){var acc=latestAcc(),box=document.getElementById("recs");
+    if(Object.keys(acc).length===0){box.innerHTML='<div class="empty">Rätta ditt första prov så pekar coachen ut var du vinner mest poäng.</div>';return;}
+    var sc=DP_ORDER.map(function(c){if(acc[c]==null)return null;var tg=DP[c].half==="v"?V_TARGET:K_TARGET,gap=Math.max(0,tg-acc[c]);return {c:c,acc:acc[c],gap:gap,score:gap*DP[c].lev};}).filter(Boolean).filter(function(x){return x.gap>0.02;});
+    sc.sort(function(a,b){return b.score-a.score;});
+    if(sc.length===0){box.innerHTML='<div class="praise"><b>Starkt!</b> Alla loggade delprov ligger på eller nära målnivån.</div>';return;}
+    box.innerHTML=sc.slice(0,3).map(function(x,i){var tg=DP[x.c].half==="v"?V_TARGET:K_TARGET;return '<div class="rec p'+(i+1)+'"><div class="rk">'+(i+1)+'</div><div><div class="nm">'+x.c+' · '+DP[x.c].name+'</div><div class="tip">'+DP[x.c].tip+'</div></div><div class="stat"><b>'+Math.round(x.acc*100)+'%</b>mål '+Math.round(tg*100)+'%</div></div>';}).join("");}
+  function renderChart(){var wrap=document.getElementById("chartWrap");var full=sortedAsc().map(function(s){return {prov:s.provLabel||s.prov,tot:metrics(s).tot};}).filter(function(x){return x.tot!=null;});
+    if(full.length===0){wrap.innerHTML='<div class="empty" style="box-shadow:none;border:0">Grafen visar din trend när du loggat minst ett helt prov.</div>';return;}
+    var W=640,H=210,pL=34,pR=16,pT=14,pB=26,pw=W-pL-pR,ph=H-pT-pB,yMin=0.5,yMax=1.7;
+    function xAt(i){return full.length===1?pL+pw/2:pL+(i/(full.length-1))*pw;}function yAt(v){return pT+(yMax-clamp(v,yMin,yMax))/(yMax-yMin)*ph;}
+    var svg='<svg class="chart" viewBox="0 0 '+W+' '+H+'">';[0.7,0.9,1.1,1.3,1.5].forEach(function(g){var y=yAt(g);svg+='<line class="grid-line" x1="'+pL+'" y1="'+y+'" x2="'+(W-pR)+'" y2="'+y+'"/><text x="'+(pL-6)+'" y="'+(y+3)+'" text-anchor="end">'+g.toFixed(1).replace(".",",")+'</text>';});
+    svg+='<line class="tgt-line" x1="'+pL+'" y1="'+yAt(1.2)+'" x2="'+(W-pR)+'" y2="'+yAt(1.2)+'"/>';
+    if(full.length>1)svg+='<polyline class="trend" points="'+full.map(function(p,i){return xAt(i)+","+yAt(p.tot);}).join(" ")+'"/>';
+    full.forEach(function(p,i){var last=i===full.length-1;svg+='<circle class="pt'+(last?" last":"")+'" cx="'+xAt(i)+'" cy="'+yAt(p.tot)+'" r="'+(last?5:3.5)+'"/>';if(last)svg+='<text class="val" x="'+xAt(i)+'" y="'+(yAt(p.tot)-10)+'" text-anchor="middle">'+fmt(p.tot)+'</text>';svg+='<text x="'+xAt(i)+'" y="'+(H-8)+'" text-anchor="middle">'+p.prov+'</text>';});
+    wrap.innerHTML=svg+'</svg>';}
+  function renderDpBars(){var acc=latestAcc(),box=document.getElementById("dpbars");
+    box.innerHTML=["ORD","MEK","LÄS","ELF","XYZ","KVA","NOG","DTK"].map(function(c){var a=acc[c],tg=DP[c].half==="v"?V_TARGET:K_TARGET,w=a==null?0:clamp(a*100,0,100);var cls=a==null?"none":(a>=tg?"ok":(a>=tg-0.12?"mid":"low"));return '<div class="dpb"><div class="c">'+c+'</div><div class="track"><div class="fl '+cls+'" style="width:'+w+'%"></div><div class="tgtmark" style="left:'+(tg*100)+'%"></div></div><div class="pct">'+(a==null?"–":Math.round(a*100)+"%"+trendArrow(delprovHistory(c)))+'</div></div>';}).join("");}
+  function renderHist(){var wrap=document.getElementById("histWrap");if(sessions.length===0){wrap.innerHTML='<div class="empty" style="border-radius:14px">Inga prov loggade än.</div>';return;}
+    var rows=sortedAsc().reverse().map(function(x){var m=metrics(x);return '<tr><td class="n">'+x.date+'</td><td>'+(x.provLabel||x.prov)+'</td><td class="n">'+fmt(m.vN)+(m.vRaw!=null?' <span style="color:var(--muted)">('+m.vRaw+'/80)</span>':'')+'</td><td class="n">'+fmt(m.kN)+(m.kRaw!=null?' <span style="color:var(--muted)">('+m.kRaw+'/80)</span>':'')+'</td><td class="n tot">'+fmt(m.tot)+'</td><td style="text-align:right"><button class="del" data-id="'+x.id+'">✕</button></td></tr>';}).join("");
+    wrap.innerHTML='<table><thead><tr><th>Datum</th><th>Prov</th><th>Verbal</th><th>Kvant</th><th>Totalt</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+    Array.prototype.forEach.call(wrap.querySelectorAll(".del"),function(b){b.addEventListener("click",function(){sessions=sessions.filter(function(x){return x.id!==+b.getAttribute("data-id");});save();renderAll();});});}
+  function renderInsights(){
+    var box=document.getElementById("insights");if(!box){renderReview();return;}
+    var full=sortedAsc().map(function(s){var m=metrics(s);return {date:s.date,vN:m.vN,kN:m.kN,tot:m.tot};}).filter(function(x){return x.tot!=null;});
+    if(full.length===0){box.innerHTML='<div class="empty" style="border:0;box-shadow:none">Logga minst ett helt prov (alla fyra provpass) så analyserar coachen var du tappar poäng och om du är i takt mot 1,2.</div>';renderReview();return;}
+    var last=full[full.length-1],lines=[];
+    if(last.vN!=null&&last.kN!=null){
+      if(Math.abs(last.vN-last.kN)>=0.1){var low=last.vN<last.kN?"verbala":"kvantitativa";lines.push({i:"🎯",t:"<b>Flaskhalsen är den "+low+" delen</b> ("+fmt(Math.min(last.vN,last.kN))+" mot "+fmt(Math.max(last.vN,last.kN))+"). Lyfter du den halvan höjs totalen snabbast."});}
+      else lines.push({i:"⚖️",t:"<b>Jämnt mellan halvorna</b> (verbal "+fmt(last.vN)+" / kvant "+fmt(last.kN)+") — bredda på båda."});
+    }
+    var acc=latestAcc(),cand=DP_ORDER.map(function(c){if(acc[c]==null)return null;var tg=DP[c].half==="v"?V_TARGET:K_TARGET;return {c:c,gap:Math.max(0,tg-acc[c]),lev:DP[c].lev,acc:acc[c],tg:tg};}).filter(Boolean).filter(function(x){return x.gap>0.02;}).sort(function(a,b){return b.gap*b.lev-a.gap*a.lev;});
+    if(cand.length){var w=cand[0];lines.push({i:"📉",t:"<b>Störst att hämta: "+w.c+"</b> ("+DP[w.c].name+") — "+Math.round(w.acc*100)+" % mot mål "+Math.round(w.tg*100)+" %. "+DP[w.c].tip});}
+    if(full.length>=2){
+      var xs=full.map(function(f){return new Date(f.date).getTime()/864e5;}),ys=full.map(function(f){return f.tot;}),n=xs.length;
+      var mx=xs.reduce(function(a,b){return a+b;},0)/n,my=ys.reduce(function(a,b){return a+b;},0)/n,nu=0,de=0,k;
+      for(k=0;k<n;k++){nu+=(xs[k]-mx)*(ys[k]-my);de+=(xs[k]-mx)*(xs[k]-mx);}
+      var b=de?nu/de:0,a=my-b*mx,proj=clamp(a+b*(EXAM.getTime()/864e5),0,2);
+      if(last.tot>=1.2)lines.push({i:"🚀",t:"<b>Du ligger redan över 1,2.</b> Håll nivån och slipa tempot."});
+      else if(b<=0.0003)lines.push({i:"➖",t:"<b>Trenden är platt</b> ("+fmt(last.tot)+"). Byt fokus till det svagaste delprovet ovan och kör fler prov."});
+      else if(proj>=1.2)lines.push({i:"📈",t:"<b>Du är i takt mot målet:</b> i nuvarande tempo ~"+fmt(proj)+" den 18 okt."});
+      else lines.push({i:"⏳",t:"<b>Takten räcker inte riktigt än:</b> projicerat ~"+fmt(proj)+" den 18 okt (mål 1,2). Lägg krutet på flaskhalsen."});
+    } else lines.push({i:"🔁",t:"Gör <b>minst två hela prov</b> så räknar jag ut om du är i takt mot 1,2 den 18 okt."});
+    var allWrong=sessions.reduce(function(a,s){return a.concat(s.wrong||[]);},[]);
+    if(allWrong.length>=15){
+      var pos=allWrong.map(function(m){var half=DP[m.dp]?DP[m.dp].half:"v";var seg=SEG[half].filter(function(s){return s.code===m.dp;})[0];return seg?clamp((m.q-1-seg.from)/(seg.to-seg.from),0,1):0.5;});
+      var av=pos.reduce(function(a,b){return a+b;},0)/pos.length;
+      if(av>0.58)lines.push({i:"⏱️",t:"<b>Många fel kommer sent i delproven</b> — det tyder på tidsbrist snarare än kunskap. Träna tempo och gissa de sista i tid."});
+    }
+    box.innerHTML=lines.map(function(l){return '<div class="insight"><span class="ico">'+l.i+'</span><span>'+l.t+'</span></div>';}).join("");
+    renderReview();
+  }
+  function renderReview(){
+    var box=document.getElementById("review");if(!box)return;
+    var byDp={};sortedAsc().reverse().forEach(function(s){(s.wrong||[]).forEach(function(m){(byDp[m.dp]=byDp[m.dp]||[]).push({prov:s.provLabel,pass:m.pass,q:m.q});});});
+    if(!Object.keys(byDp).length){box.innerHTML='<div class="empty" style="border:0;box-shadow:none">Här samlas frågorna du missat, per delprov — så du kan gå tillbaka till häftena och nöta exakt dem.</div>';return;}
+    box.innerHTML=DP_ORDER.filter(function(c){return byDp[c];}).map(function(c){
+      var g={};byDp[c].forEach(function(m){var key=m.prov+" · "+m.pass;(g[key]=g[key]||[]).push(m.q);});
+      var groups=Object.keys(g).slice(0,6).map(function(key){var qs=g[key].sort(function(a,b){return a-b;});return '<div class="revline"><span class="revsrc">'+key.replace("provpass","pass")+'</span> — fråga '+qs.join(", ")+'</div>';}).join("");
+      return '<div class="revrow"><div class="revc">'+c+' <span class="amuted">('+byDp[c].length+' fel)</span></div>'+groups+'</div>';
+    }).join("");
+  }
+  function renderAll(){renderGauge();renderRecs();renderChart();renderDpBars();renderInsights();renderHist();}
+
+  // ---- timers ----
+  var timers={};
+  function fmtT(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+  function tGet(k){if(!timers[k])timers[k]={rem:3300,run:false,id:null};return timers[k];}
+  function tRender(k){var el=document.getElementById("timer-"+k);if(!el)return;var t=tGet(k);el.textContent=fmtT(t.rem);el.classList.toggle("done",t.rem<=0);}
+  function tBtn(k){var b=document.querySelector('#answerpane [data-act="tstart"]');if(b)b.textContent=tGet(k).run?"Paus":"Start";}
+  function tToggle(k){var t=tGet(k);if(t.run){clearInterval(t.id);t.run=false;}else{t.run=true;t.id=setInterval(function(){t.rem--;if(t.rem<=0){t.rem=0;clearInterval(t.id);t.run=false;tBtn(k);}tRender(k);},1000);}tBtn(k);}
+  function tReset(k){var t=tGet(k);clearInterval(t.id);t.run=false;t.rem=3300;tRender(k);tBtn(k);}
+  function tPause(k){var t=timers[k];if(t&&t.run){clearInterval(t.id);t.run=false;}}
+
+  // ---- Gör ett prov ----
+  var draft={}, currentKey=null;
+  function currentProv(){return provById[document.getElementById("selProv").value];}
+  function passByKey(k){return passesOf(currentProv()).filter(function(p){return p.key===k;})[0];}
+  function scorePass(facit,ans,t){var right=0,miss=[],missDetail=[],sub={};SEG[t].forEach(function(s){var r=0;for(var i=s.from;i<s.to;i++){if(ans[i]===facit[i])r++;else{miss.push(i+1);missDetail.push({dp:s.code,q:i+1});}}sub[s.code]={r:r,t:s.to-s.from};});for(var i=0;i<40;i++){if(ans[i]===facit[i])right++;}return {right:right,miss:miss,missDetail:missDetail,sub:sub};}
+
+  function buildForProv(){
+    Object.keys(timers).forEach(function(k){if(timers[k].id)clearInterval(timers[k].id);});timers={};
+    draft={};var prov=currentProv(),passes=passesOf(prov);
+    passes.forEach(function(p){draft[p.key]={answers:new Array(40).fill(null),graded:false,score:null};});
+    document.getElementById("selPass").innerHTML=passes.map(function(p){return '<option value="'+p.key+'">'+p.label+'</option>';}).join("");
+    currentKey=passes[0].key;document.getElementById("selPass").value=currentKey;
+    document.getElementById("saveMsg").textContent="";
+    loadPass();renderChips();
+  }
+  function loadPass(){var prov=currentProv(),p=passByKey(currentKey),url=pdfUrl(prov.id,currentKey);
+    document.getElementById("pdfOpen").href=url;
+    document.getElementById("pdfTitle").textContent=prov.label+" · "+p.label;
+    renderPdf(url);renderAnswerPane(p);}
+  function switchPass(k){tPause(currentKey);currentKey=k;loadPass();renderChips();}
+
+  function renderChips(){var passes=passesOf(currentProv());
+    document.getElementById("passChips").innerHTML=passes.map(function(p){var d=draft[p.key];var cls="chip"+(d.graded?" done":"")+(p.key===currentKey?" cur":"");return '<span class="'+cls+'">'+p.label.replace("provpass","pass")+(d.graded?" ✓ "+d.score.right+"/40":"")+'</span>';}).join("");}
+
+  function renderAnswerPane(p){
+    var d=draft[p.key],ap=document.getElementById("answerpane");
+    var html='<div class="timer"><span class="tlbl">⏱ Provpasset · 55 min</span><span class="tdisp" id="timer-'+p.key+'">55:00</span><button type="button" class="ghost mini" data-act="tstart">Start</button><button type="button" class="ghost mini" data-act="treset">Nollställ</button></div>';
+    SEG[p.t].forEach(function(s){
+      var perQ=Math.round(REC[s.code]*60/(s.to-s.from));
+      html+='<div class="dphead">'+s.code+' · '+DP[s.code].name+' <span class="rec">rek. '+REC[s.code]+' min · ~'+perQ+' s/uppg.</span>'+(s.code==="ELF"?' <span class="elfwarn">(ej i häftet)</span>':'')+'</div>';
+      for(var i=s.from;i<s.to;i++){var opts="";
+        for(var o=0;o<s.opts;o++){var l=LETTERS[o],cls="opt";if(d.answers[i]===l)cls+=" sel";
+          if(d.graded){if(l===p.facit[i])cls+=(d.answers[i]===l?" correct":" miss");if(l===d.answers[i]&&d.answers[i]!==p.facit[i])cls+=" wrong";}
+          opts+='<button type="button" class="'+cls+'" data-q="'+i+'" data-l="'+l+'"'+(d.graded?" disabled":"")+'>'+l+'</button>';}
+        html+='<div class="qrow"><div class="qn">'+(i+1)+'.</div><div class="opts" data-q="'+i+'">'+opts+'</div></div>';}
+    });
+    html+=d.graded?'<div class="passbtns"><button type="button" class="ghost mini" data-act="reset">Gör om passet</button></div>':'<div class="passbtns"><button type="button" class="primary mini" data-act="grade">Rätta passet</button><button type="button" class="ghost mini" data-act="reset">Rensa</button></div>';
+    html+='<div id="res">'+(d.graded?resultHtml(p,d):"")+'</div>';
+    ap.innerHTML=html;
+    if(!d.graded)ap.querySelectorAll(".opt").forEach(function(b){b.addEventListener("click",function(){var q=+b.getAttribute("data-q"),l=b.getAttribute("data-l");d.answers[q]=l;ap.querySelectorAll('.opts[data-q="'+q+'"] .opt').forEach(function(x){x.classList.toggle("sel",x.getAttribute("data-l")===l);});});});
+    var g=ap.querySelector('[data-act="grade"]');if(g)g.addEventListener("click",function(){gradePass(p);});
+    ap.querySelector('[data-act="reset"]').addEventListener("click",function(){draft[p.key]={answers:new Array(40).fill(null),graded:false,score:null};renderAnswerPane(p);renderChips();});
+    ap.querySelector('[data-act="tstart"]').addEventListener("click",function(){tToggle(p.key);});
+    ap.querySelector('[data-act="treset"]').addEventListener("click",function(){tReset(p.key);});
+    tRender(p.key);
+  }
+  function resultHtml(p,d){var sc=d.score,lines=SEG[p.t].map(function(s){return s.code+" "+sc.sub[s.code].r+"/"+sc.sub[s.code].t;}).join(" · ");
+    return '<div class="passresult"><b>'+sc.right+' av 40 rätt.</b> '+lines+(sc.miss.length?'<div class="miss">Repetera: fråga '+sc.miss.join(", ")+'</div>':'<div class="miss">Inga fel — grymt!</div>')+'</div>';}
+  function gradePass(p){var d=draft[p.key];d.score=scorePass(p.facit,d.answers,p.t);d.graded=true;renderAnswerPane(p);renderChips();}
+
+  function saveSession(){var prov=currentProv(),passes=passesOf(prov),date=document.getElementById("selDate").value||todayISO(),results={},wrong=[],graded=0;
+    passes.forEach(function(p){var d=draft[p.key];if(!d||!d.graded)return;graded++;SEG[p.t].forEach(function(s){var r=d.score.sub[s.code].r,t=d.score.sub[s.code].t;if(!results[s.code])results[s.code]={r:0,t:0};results[s.code].r+=r;results[s.code].t+=t;});(d.score.missDetail||[]).forEach(function(m){wrong.push({pass:p.label,dp:m.dp,q:m.q});});});
+    var msg=document.getElementById("saveMsg");if(graded===0){msg.style.color="var(--coral)";msg.textContent="Rätta minst ett provpass först.";return;}
+    sessions.push({id:Date.now(),date:date,prov:prov.id,provLabel:prov.label,results:results,wrong:wrong});save();renderAll();
+    msg.style.color="var(--good)";msg.textContent="Loggat! ("+graded+" provpass) — byt prov för att börja om.";}
+
+  function exportData(){var blob=new Blob([JSON.stringify(sessions,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="frida-hp-data.json";a.click();URL.revokeObjectURL(url);}
+  function importData(f){var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(Array.isArray(d)){sessions=d;save();renderAll();}}catch(e){alert("Kunde inte läsa filen.");}};r.readAsText(f);}
+
+  var sp=document.getElementById("selProv");sp.innerHTML=PROV.map(function(p){return '<option value="'+p.id+'">'+p.label+'</option>';}).join("");
+  document.getElementById("selDate").value=todayISO();
+  sp.addEventListener("change",buildForProv);
+  document.getElementById("selPass").addEventListener("change",function(e){switchPass(e.target.value);});
+  document.getElementById("saveBtn").addEventListener("click",saveSession);
+  document.getElementById("exportBtn").addEventListener("click",exportData);
+  document.getElementById("importBtn").addEventListener("click",function(){document.getElementById("importFile").click();});
+  document.getElementById("importFile").addEventListener("change",function(e){if(e.target.files[0])importData(e.target.files[0]);});
+  document.getElementById("wipeBtn").addEventListener("click",function(){if(confirm("Rensa alla loggade prov?")){sessions=[];save();renderAll();}});
+  renderAuth();
+  if(sb){
+    sb.auth.getSession().then(function(r){user=r.data.session?r.data.session.user:null;renderAuth();if(user)pullRemote();});
+    sb.auth.onAuthStateChange(function(_e,session){var was=user;user=session?session.user:null;renderAuth();if(user&&(!was||was.id!==user.id))pullRemote();});
+  }
+  buildForProv();renderAll();
+})();
+</script>
+</body></html>
