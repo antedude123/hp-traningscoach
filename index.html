@@ -104,12 +104,16 @@
   .opt.correct{background:var(--good);color:#fff;border-color:var(--good);}
   .opt.wrong{background:var(--bad);color:#fff;border-color:var(--bad);}
   .opt.miss{border-color:var(--good);color:var(--good);border-width:2px;}
-  .explrow{margin:2px 0 9px 40px;}
-  .explbtn{background:transparent;border:0;color:var(--slate);font-size:12px;font-weight:600;cursor:pointer;padding:2px 0;font-family:var(--mono);}
+  .explrow{margin:5px 0 13px 40px;}
+  .facitrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .facitbadge{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--good);background:var(--good-wash);border:1px solid var(--good);border-radius:999px;padding:3px 11px;letter-spacing:.03em;white-space:nowrap;}
+  .explbtn{background:transparent;border:0;color:var(--slate);font-size:12.5px;font-weight:600;cursor:pointer;padding:2px 0;font-family:var(--sans);display:inline-flex;align-items:center;gap:6px;}
   .explbtn:hover{color:var(--coral-deep);}
-  .expl{margin-top:5px;font-size:13px;color:var(--ink-soft);background:var(--slate-wash);border-radius:9px;padding:10px 12px;line-height:1.5;}
-  .expl .exwarn{color:var(--warn);font-weight:600;}
-  .facitlbl{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--good);}
+  .explbtn .chev{font-size:9px;transition:transform .15s ease;display:inline-block;}
+  .explbtn.open .chev{transform:rotate(90deg);}
+  .expl{margin-top:9px;border-left:3px solid var(--coral);background:var(--slate-wash);border-radius:0 11px 11px 0;padding:12px 15px;}
+  .expltext{font-size:13.5px;color:var(--ink);line-height:1.62;}
+  .expl .exwarn{display:inline-block;color:var(--warn);font-weight:600;font-size:11.5px;background:var(--amber-wash);border-radius:6px;padding:3px 9px;margin-bottom:8px;}
   .opt:disabled{cursor:default;}
   .passbtns{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;}
   button{font-family:var(--sans);font-size:13.5px;font-weight:600;border-radius:9px;padding:9px 15px;border:1px solid transparent;cursor:pointer;}
@@ -450,7 +454,7 @@
           opts+='<button type="button" class="'+cls+'" data-q="'+i+'" data-l="'+l+'"'+(showFacit?" disabled":"")+'>'+l+'</button>';}
         var extra="";
         if(showFacit){var ex=explFor(currentProv().id,p.key,i+1);
-          extra='<div class="explrow"><span class="facitlbl">Rätt: '+p.facit[i]+'</span>'+(ex?' <button type="button" class="explbtn" data-eq="'+i+'">Visa förklaring</button><div class="expl" id="expl-'+i+'" hidden>'+(ex.f?'<span class="exwarn">⚠ osäker — dubbelkolla mot facit. </span>':'')+esc(ex.t)+'</div>':'')+'</div>';}
+          extra='<div class="explrow"><div class="facitrow"><span class="facitbadge">✓ Rätt: '+p.facit[i]+'</span>'+(ex?'<button type="button" class="explbtn" data-eq="'+i+'"><span class="chev">▸</span> Förklaring</button>':'')+'</div>'+(ex?'<div class="expl" id="expl-'+i+'" hidden>'+(ex.f?'<div class="exwarn">⚠ Osäker — dubbelkolla mot facit.</div>':'')+'<div class="expltext">'+esc(ex.t)+'</div></div>':'')+'</div>';}
         html+='<div class="qrow"><div class="qn">'+(i+1)+'.</div><div class="opts" data-q="'+i+'">'+opts+'</div></div>'+extra;}
     });
     html+=d.graded?'<div class="passbtns"><button type="button" class="ghost mini" data-act="reset">Gör om passet</button></div>':'<div class="passbtns"><button type="button" class="primary mini" data-act="grade">Rätta passet</button><button type="button" class="ghost mini" data-act="facit">'+(d.reveal?'Dölj facit':'Visa facit')+'</button><button type="button" class="ghost mini" data-act="reset">Rensa</button></div>';
@@ -462,7 +466,7 @@
     ap.querySelector('[data-act="reset"]').addEventListener("click",function(){draft[p.key]={answers:new Array(40).fill(null),graded:false,reveal:false,score:null};renderAnswerPane(p);renderChips();});
     ap.querySelector('[data-act="tstart"]').addEventListener("click",function(){tToggle(p.key);});
     ap.querySelector('[data-act="treset"]').addEventListener("click",function(){tReset(p.key);});
-    ap.querySelectorAll(".explbtn").forEach(function(b){b.addEventListener("click",function(){var el=document.getElementById("expl-"+b.getAttribute("data-eq"));if(!el)return;var h=el.hasAttribute("hidden");if(h){el.removeAttribute("hidden");}else{el.setAttribute("hidden","");}b.textContent=h?"Dölj förklaring":"Visa förklaring";});});
+    ap.querySelectorAll(".explbtn").forEach(function(b){b.addEventListener("click",function(){var el=document.getElementById("expl-"+b.getAttribute("data-eq"));if(!el)return;var h=el.hasAttribute("hidden");if(h){el.removeAttribute("hidden");b.classList.add("open");}else{el.setAttribute("hidden","");b.classList.remove("open");}});});
     tRender(p.key);
   }
   function resultHtml(p,d){var sc=d.score,lines=SEG[p.t].map(function(s){return s.code+" "+sc.sub[s.code].r+"/"+sc.sub[s.code].t;}).join(" · ");
