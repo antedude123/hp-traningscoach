@@ -184,7 +184,7 @@
     <div class="passchips" id="passChips"></div>
     <div class="splitview">
       <div class="pdfpane">
-        <div class="pdfbar"><span class="t" id="pdfTitle">Provhäfte</span><a id="pdfOpen" target="_blank" rel="noopener">Öppna i ny flik ↗</a></div>
+        <div class="pdfbar"><span class="t" id="pdfTitle">Provhäfte</span><span><a id="pdfReload" href="#" style="margin-right:14px">⟳ Ladda om</a><a id="pdfOpen" target="_blank" rel="noopener">Öppna i ny flik ↗</a></span></div>
         <div id="pdf" class="pdfscroll"><div class="loading">Laddar häfte…</div></div>
         <p class="pdfnote">Obs: den engelska delen (ELF) saknas i häftet av upphovsrättsskäl — men du kan ändå klicka i ELF-svar till höger (facit finns), eller hoppa över den.</p>
       </div>
@@ -232,10 +232,13 @@
 (function(){
   "use strict";
   if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}
-  var pdfToken=0;
-  function renderPdf(url){
-    var box=document.getElementById("pdf");box.innerHTML='<div class="loading">Laddar häfte…</div>';
-    if(!window.pdfjsLib){box.innerHTML='<div class="loading">PDF-läsaren kunde inte laddas (internet?). Använd "Öppna i ny flik".</div>';return;}
+  var pdfToken=0, pdfCurUrl="";
+  function renderPdf(url,force){
+    var box=document.getElementById("pdf");if(!box)return;
+    if(!force && url===pdfCurUrl && box.querySelector("canvas"))return;
+    pdfCurUrl=url;
+    box.innerHTML='<div class="loading">Laddar häfte… (de kvantitativa är stora — ge det ett par sekunder)</div>';
+    if(!window.pdfjsLib){box.innerHTML='<div class="loading">PDF-läsaren kunde inte laddas. Använd "Öppna i ny flik ↗".</div>';return;}
     var my=++pdfToken;
     pdfjsLib.getDocument(url).promise.then(function(pdf){
       if(my!==pdfToken)return;box.innerHTML="";
@@ -244,13 +247,14 @@
         if(i>n||my!==pdfToken)return;
         pdf.getPage(i).then(function(pg){
           if(my!==pdfToken)return;
-          var v0=pg.getViewport({scale:1}),bw=box.clientWidth||640,scale=Math.max(0.4,(bw-28)/v0.width),vp=pg.getViewport({scale:scale*1.6});
+          var v0=pg.getViewport({scale:1}),bw=box.clientWidth||640,scale=Math.max(0.5,Math.min(2.0,(bw-28)/v0.width*1.5)),vp=pg.getViewport({scale:scale});
           var c=document.createElement("canvas");c.width=vp.width;c.height=vp.height;box.appendChild(c);
-          pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise.then(function(){page(i+1);});
-        });
+          pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise.then(function(){page(i+1);},function(){page(i+1);});
+        },function(){page(i+1);});
       })(1);
-    }).catch(function(e){if(my!==pdfToken)return;box.innerHTML='<div class="loading">Kunde inte ladda häftet ('+(e&&e.message||e)+'). Använd "Öppna i ny flik".</div>';});
+    }).catch(function(e){if(my!==pdfToken)return;box.innerHTML='<div class="loading">Kunde inte ladda häftet. <button type="button" class="explbtn" id="pdfRetry">⟳ Försök igen</button> · eller "Öppna i ny flik ↗".</div>';var rb=document.getElementById("pdfRetry");if(rb)rb.addEventListener("click",function(){renderPdf(url,true);});});
   }
+  function ensurePdf(){var box=document.getElementById("pdf");if(box&&pdfCurUrl&&!box.querySelector("canvas"))renderPdf(pdfCurUrl,true);}
   var KEY="frida_hp_complete";
   var EXAM=new Date(2026,9,18), V_TARGET=0.74,K_TARGET=0.66, LETTERS=["A","B","C","D","E"];
   var DP={
@@ -493,8 +497,10 @@
     document.querySelectorAll(".page").forEach(function(el){el.classList.toggle("active",el.id==="page-"+p);});
     document.querySelectorAll(".nav button").forEach(function(b){b.classList.toggle("active",b.getAttribute("data-page")===p);});
     if(("#"+p)!==location.hash){try{history.replaceState(null,"","#"+p);}catch(e){}}
-    window.scrollTo(0,0);}
+    window.scrollTo(0,0);
+    if(p==="prov")setTimeout(ensurePdf,60);}
   document.querySelectorAll(".nav button").forEach(function(b){b.addEventListener("click",function(){showPage(b.getAttribute("data-page"));});});
+  (function(){var prl=document.getElementById("pdfReload");if(prl)prl.addEventListener("click",function(e){e.preventDefault();renderPdf(pdfCurUrl,true);});})();
   window.addEventListener("hashchange",function(){showPage((location.hash||"#prov").slice(1));});
   showPage((location.hash||"#prov").slice(1));
 })();
