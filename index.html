@@ -195,7 +195,8 @@
       </div>
       <div class="answerpane" id="answerpane"></div>
     </div>
-    <div class="savebar"><button class="primary" id="saveBtn">Logga hela provet</button><span class="hint" id="saveMsg"></span></div>
+    <div class="savebar"><button class="primary" id="saveBtn">Logga hela provet</button><button class="ghost" id="resetDraftBtn">Börja om provet</button><span class="hint" id="saveMsg"></span></div>
+    <p class="hint" id="draftHint" style="margin:8px 0 0"></p>
   </div>
 
   <div class="page" id="page-resultat">
@@ -421,24 +422,33 @@
 
   // ---- Gör ett prov ----
   var draft={}, currentKey=null;
+  var DKEY="frida_hp_draft";
+  function loadDraftAll(){try{var d=JSON.parse(localStorage.getItem(DKEY));return d&&typeof d==="object"?d:null;}catch(e){return null;}}
+  function draftHasWork(){for(var k in draft){var d=draft[k];if(d&&(d.graded||(d.answers&&d.answers.some(function(x){return x!=null;}))))return true;}return false;}
+  function setSavedHint(){var el=document.getElementById("draftHint");if(el)el.textContent=draftHasWork()?"💾 Sparas automatiskt — du kan stänga fliken och fortsätta senare (på samma enhet).":"";}
+  function saveDraft(){try{var all=loadDraftAll()||{byProv:{}};all.byProv=all.byProv||{};var pid=currentProv().id;all.lastProv=pid;all.date=document.getElementById("selDate").value;all.byProv[pid]={currentKey:currentKey,byPass:draft};localStorage.setItem(DKEY,JSON.stringify(all));}catch(e){}setSavedHint();}
+  function clearDraftFor(pid){try{var all=loadDraftAll();if(all&&all.byProv&&all.byProv[pid]){delete all.byProv[pid];if(all.lastProv===pid)delete all.lastProv;localStorage.setItem(DKEY,JSON.stringify(all));}}catch(e){}}
   function currentProv(){return provById[document.getElementById("selProv").value];}
   function passByKey(k){return passesOf(currentProv()).filter(function(p){return p.key===k;})[0];}
   function scorePass(facit,ans,t){var right=0,miss=[],missDetail=[],sub={};SEG[t].forEach(function(s){var r=0;for(var i=s.from;i<s.to;i++){if(ans[i]===facit[i])r++;else{miss.push(i+1);missDetail.push({dp:s.code,q:i+1});}}sub[s.code]={r:r,t:s.to-s.from};});for(var i=0;i<40;i++){if(ans[i]===facit[i])right++;}return {right:right,miss:miss,missDetail:missDetail,sub:sub};}
 
   function buildForProv(){
     Object.keys(timers).forEach(function(k){if(timers[k].id)clearInterval(timers[k].id);});timers={};
-    draft={};var prov=currentProv(),passes=passesOf(prov);
-    passes.forEach(function(p){draft[p.key]={answers:new Array(40).fill(null),graded:false,score:null};});
+    var prov=currentProv(),passes=passesOf(prov);draft={};
+    passes.forEach(function(p){draft[p.key]={answers:new Array(40).fill(null),graded:false,reveal:false,score:null};});
+    var all=loadDraftAll(),pd=all&&all.byProv&&all.byProv[prov.id];
+    if(pd&&pd.byPass){passes.forEach(function(p){var s=pd.byPass[p.key];if(s&&Array.isArray(s.answers)){draft[p.key]={answers:s.answers.slice(0,40),graded:!!s.graded,reveal:!!s.reveal,score:s.score||null};}});}
     document.getElementById("selPass").innerHTML=passes.map(function(p){return '<option value="'+p.key+'">'+p.label+'</option>';}).join("");
-    currentKey=passes[0].key;document.getElementById("selPass").value=currentKey;
+    currentKey=(pd&&pd.currentKey&&passes.some(function(p){return p.key===pd.currentKey;}))?pd.currentKey:passes[0].key;
+    document.getElementById("selPass").value=currentKey;
     document.getElementById("saveMsg").textContent="";
-    loadPass();renderChips();
+    loadPass();renderChips();setSavedHint();
   }
   function loadPass(){var prov=currentProv(),p=passByKey(currentKey),url=pdfUrl(prov.id,currentKey);
     document.getElementById("pdfOpen").href=url;
     document.getElementById("pdfTitle").textContent=prov.label+" · "+p.label;
     renderPdf(url);renderAnswerPane(p);}
-  function switchPass(k){tPause(currentKey);currentKey=k;loadPass();renderChips();}
+  function switchPass(k){tPause(currentKey);currentKey=k;loadPass();renderChips();saveDraft();}
 
   function renderChips(){var passes=passesOf(currentProv());
     document.getElementById("passChips").innerHTML=passes.map(function(p){var d=draft[p.key];var cls="chip"+(d.graded?" done":"")+(p.key===currentKey?" cur":"");return '<span class="'+cls+'">'+p.label.replace("provpass","pass")+(d.graded?" ✓ "+d.score.right+"/40":"")+'</span>';}).join("");}
@@ -464,10 +474,10 @@
     html+=d.graded?'<div class="passbtns"><button type="button" class="ghost mini" data-act="reset">Gör om passet</button></div>':'<div class="passbtns"><button type="button" class="primary mini" data-act="grade">Rätta passet</button><button type="button" class="ghost mini" data-act="facit">'+(d.reveal?'Dölj facit':'Visa facit')+'</button><button type="button" class="ghost mini" data-act="reset">Rensa</button></div>';
     html+='<div id="res">'+(d.graded?resultHtml(p,d):"")+'</div>';
     ap.innerHTML=html;
-    if(!showFacit)ap.querySelectorAll(".opt").forEach(function(b){b.addEventListener("click",function(){var q=+b.getAttribute("data-q"),l=b.getAttribute("data-l");d.answers[q]=l;ap.querySelectorAll('.opts[data-q="'+q+'"] .opt').forEach(function(x){x.classList.toggle("sel",x.getAttribute("data-l")===l);});});});
+    if(!showFacit)ap.querySelectorAll(".opt").forEach(function(b){b.addEventListener("click",function(){var q=+b.getAttribute("data-q"),l=b.getAttribute("data-l");d.answers[q]=l;ap.querySelectorAll('.opts[data-q="'+q+'"] .opt').forEach(function(x){x.classList.toggle("sel",x.getAttribute("data-l")===l);});saveDraft();});});
     var g=ap.querySelector('[data-act="grade"]');if(g)g.addEventListener("click",function(){gradePass(p);});
-    var fb=ap.querySelector('[data-act="facit"]');if(fb)fb.addEventListener("click",function(){d.reveal=!d.reveal;renderAnswerPane(p);});
-    ap.querySelector('[data-act="reset"]').addEventListener("click",function(){draft[p.key]={answers:new Array(40).fill(null),graded:false,reveal:false,score:null};renderAnswerPane(p);renderChips();});
+    var fb=ap.querySelector('[data-act="facit"]');if(fb)fb.addEventListener("click",function(){d.reveal=!d.reveal;renderAnswerPane(p);saveDraft();});
+    ap.querySelector('[data-act="reset"]').addEventListener("click",function(){draft[p.key]={answers:new Array(40).fill(null),graded:false,reveal:false,score:null};renderAnswerPane(p);renderChips();saveDraft();});
     ap.querySelector('[data-act="tstart"]').addEventListener("click",function(){tToggle(p.key);});
     ap.querySelector('[data-act="treset"]').addEventListener("click",function(){tReset(p.key);});
     ap.querySelectorAll(".explbtn").forEach(function(b){b.addEventListener("click",function(){var el=document.getElementById("expl-"+b.getAttribute("data-eq"));if(!el)return;var h=el.hasAttribute("hidden");if(h){el.removeAttribute("hidden");b.classList.add("open");}else{el.setAttribute("hidden","");b.classList.remove("open");}});});
@@ -475,7 +485,7 @@
   }
   function resultHtml(p,d){var sc=d.score,lines=SEG[p.t].map(function(s){return s.code+" "+sc.sub[s.code].r+"/"+sc.sub[s.code].t;}).join(" · ");
     return '<div class="passresult"><b>'+sc.right+' av 40 rätt.</b> '+lines+(sc.miss.length?'<div class="miss">Repetera: fråga '+sc.miss.join(", ")+'</div>':'<div class="miss">Inga fel — grymt!</div>')+'</div>';}
-  function gradePass(p){var d=draft[p.key];d.score=scorePass(p.facit,d.answers,p.t);d.graded=true;renderAnswerPane(p);renderChips();}
+  function gradePass(p){var d=draft[p.key];d.score=scorePass(p.facit,d.answers,p.t);d.graded=true;renderAnswerPane(p);renderChips();saveDraft();}
 
   function saveSession(){var prov=currentProv(),passes=passesOf(prov),date=document.getElementById("selDate").value||todayISO(),results={},wrong=[],graded=0;
     passes.forEach(function(p){var d=draft[p.key];if(!d||!d.graded)return;graded++;SEG[p.t].forEach(function(s){var r=d.score.sub[s.code].r,t=d.score.sub[s.code].t;if(!results[s.code])results[s.code]={r:0,t:0};results[s.code].r+=r;results[s.code].t+=t;});(d.score.missDetail||[]).forEach(function(m){wrong.push({pass:p.label,dp:m.dp,q:m.q});});});
@@ -488,8 +498,10 @@
 
   var sp=document.getElementById("selProv");sp.innerHTML=PROV.map(function(p){return '<option value="'+p.id+'">'+p.label+'</option>';}).join("");
   document.getElementById("selDate").value=todayISO();
-  sp.addEventListener("change",buildForProv);
+  sp.addEventListener("change",function(){buildForProv();saveDraft();});
   document.getElementById("selPass").addEventListener("change",function(e){switchPass(e.target.value);});
+  document.getElementById("selDate").addEventListener("change",saveDraft);
+  document.getElementById("resetDraftBtn").addEventListener("click",function(){if(!draftHasWork()||confirm("Börja om det pågående provet? Dina inklickade (ej loggade) svar rensas — loggade prov påverkas inte.")){clearDraftFor(currentProv().id);buildForProv();}});
   document.getElementById("saveBtn").addEventListener("click",saveSession);
   document.getElementById("exportBtn").addEventListener("click",exportData);
   document.getElementById("importBtn").addEventListener("click",function(){document.getElementById("importFile").click();});
@@ -500,6 +512,7 @@
     sb.auth.getSession().then(function(r){user=r.data.session?r.data.session.user:null;renderAuth();if(user)pullRemote();});
     sb.auth.onAuthStateChange(function(_e,session){var was=user;user=session?session.user:null;renderAuth();if(user&&(!was||was.id!==user.id))pullRemote();});
   }
+  (function(){var all=loadDraftAll();if(all){if(all.lastProv&&provById[all.lastProv])sp.value=all.lastProv;if(all.date)document.getElementById("selDate").value=all.date;}})();
   buildForProv();renderAll();
   function showPage(p){var ps=["prov","resultat","insikter","traning"];if(ps.indexOf(p)<0)p="prov";
     document.querySelectorAll(".page").forEach(function(el){el.classList.toggle("active",el.id==="page-"+p);});
