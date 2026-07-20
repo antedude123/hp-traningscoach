@@ -33,6 +33,21 @@
   .authbar .aok{color:var(--slate);font-weight:600;}
   .authbar input[type="email"]{font-family:var(--sans);font-size:13px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);}
   .authbar input[type="email"]:focus{outline:2px solid var(--coral);outline-offset:1px;}
+  .nav{display:flex;gap:4px;margin:18px 0 22px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .nav button{background:transparent;border:0;border-bottom:2px solid transparent;border-radius:0;padding:9px 15px;font-family:var(--sans);font-size:14.5px;font-weight:600;color:var(--muted);cursor:pointer;margin-bottom:-1px;}
+  .nav button:hover{color:var(--ink);}
+  .nav button.active{color:var(--coral-deep);border-bottom-color:var(--coral);}
+  .page{display:none;}
+  .page.active{display:block;}
+  @media(prefers-reduced-motion:no-preference){.page.active{animation:fadein .18s ease;}}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .page .card h4{margin:0 0 10px;font-size:12px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--coral-deep);}
+  .page .card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;font-size:13.5px;color:var(--ink-soft);}
+  .page .card ul.reslist{list-style:none;padding-left:0;}
+  .page .card a{color:var(--coral-deep);}
+  .page .card .tg{font-size:13px;color:var(--ink-soft);}
+  @media(max-width:680px){.cols2{grid-template-columns:1fr;}}
 
   .gauge{display:flex;gap:20px;align-items:center;}
   .gauge .num{font-family:var(--serif);font-weight:600;font-size:clamp(42px,9vw,58px);line-height:.9;color:var(--coral);font-variant-numeric:tabular-nums;}
@@ -89,6 +104,11 @@
   .opt.correct{background:var(--good);color:#fff;border-color:var(--good);}
   .opt.wrong{background:var(--bad);color:#fff;border-color:var(--bad);}
   .opt.miss{border-color:var(--good);color:var(--good);border-width:2px;}
+  .explrow{margin:2px 0 9px 40px;}
+  .explbtn{background:transparent;border:0;color:var(--slate);font-size:12px;font-weight:600;cursor:pointer;padding:2px 0;font-family:var(--mono);}
+  .explbtn:hover{color:var(--coral-deep);}
+  .expl{margin-top:5px;font-size:13px;color:var(--ink-soft);background:var(--slate-wash);border-radius:9px;padding:10px 12px;line-height:1.5;}
+  .expl .exwarn{color:var(--warn);font-weight:600;}
   .opt:disabled{cursor:default;}
   .passbtns{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;}
   button{font-family:var(--sans);font-size:13.5px;font-weight:600;border-radius:9px;padding:9px 15px;border:1px solid transparent;cursor:pointer;}
@@ -139,26 +159,22 @@
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="explanations.js"></script>
 </head>
 <body><div class="wrap">
 
   <p class="eyebrow">Högskoleprovet · komplett träningscoach</p>
   <h1>Fridas HP-coach</h1>
-  <p class="lede">Frågorna (UHR:s officiella provhäfte) visas till vänster, dina svar klickar du i till höger. Coachen rättar automatiskt mot facit, visar vilka frågor du missade, tar tid och följer din utveckling mot 1,2. Kräver internet (häftena laddas från studera.nu).</p>
   <div id="authbar" class="authbar"></div>
+  <nav class="nav">
+    <button type="button" data-page="prov" class="active">Prov</button>
+    <button type="button" data-page="resultat">Resultat</button>
+    <button type="button" data-page="insikter">Insikter</button>
+    <button type="button" data-page="traning">Träning</button>
+  </nav>
 
-  <section><div class="grid2">
-    <div class="card"><p class="kicker" style="margin-bottom:16px">Läget</p>
-      <div class="gauge"><div class="num none" id="gNum">–</div>
-        <div class="meta"><div><span class="lbl">Est. resultat</span><div class="bar" id="gBar"><div class="fill" style="width:0%"></div><div class="tgt" style="left:58%"></div></div></div>
-        <div style="font-size:12.5px">Mål <b>1,20</b> · streck = mål</div></div></div>
-      <p class="pace" id="pace">Inga hela prov loggade än.</p></div>
-    <div class="card"><p class="kicker" style="margin-bottom:16px">Träna härnäst</p><div class="recs" id="recs"></div></div>
-  </div></section>
-
-  <section>
-    <h2>Gör ett prov</h2>
-    <p class="sub">Välj prov och provpass. Läs frågorna i häftet, ta tid, klicka i svaren, och tryck <b>Rätta passet</b>. När du gjort de pass du vill: <b>Logga hela provet</b>.</p>
+  <div class="page active" id="page-prov">
+    <p class="sub" style="margin-top:2px">Frågorna (UHR:s officiella häfte) till vänster, dina svar till höger. Coachen rättar mot facit och tar tid. Välj prov och provpass, klicka i svaren, tryck <b>Rätta passet</b> — och sedan <b>Logga hela provet</b>.</p>
     <div class="toolbar">
       <div><label class="f" for="selProv">Prov</label><select id="selProv"></select></div>
       <div><label class="f" for="selPass">Provpass</label><select id="selPass"></select></div>
@@ -174,19 +190,39 @@
       <div class="answerpane" id="answerpane"></div>
     </div>
     <div class="savebar"><button class="primary" id="saveBtn">Logga hela provet</button><span class="hint" id="saveMsg"></span></div>
-  </section>
+  </div>
 
-  <section><div class="grid2">
-    <div><p class="kicker">Utveckling · skattat totalresultat</p><div class="chartwrap" id="chartWrap"></div></div>
-    <div><p class="kicker">Senaste träffsäkerhet per delprov</p><div class="card"><div class="dpbars" id="dpbars"></div>
-      <p class="hint" style="margin-top:14px">Streck = ungefärlig nivå för 1,2 (verbal ~74 %, kvant ~66 %).</p></div></div>
-  </div></section>
+  <div class="page" id="page-resultat">
+    <section><div class="grid2">
+      <div class="card"><p class="kicker" style="margin-bottom:16px">Läget</p>
+        <div class="gauge"><div class="num none" id="gNum">–</div>
+          <div class="meta"><div><span class="lbl">Est. resultat</span><div class="bar" id="gBar"><div class="fill" style="width:0%"></div><div class="tgt" style="left:58%"></div></div></div>
+          <div style="font-size:12.5px">Mål <b>1,20</b> · streck = mål</div></div></div>
+        <p class="pace" id="pace">Inga hela prov loggade än.</p></div>
+      <div><p class="kicker">Utveckling · skattat totalresultat</p><div class="chartwrap" id="chartWrap"></div></div>
+    </div></section>
+    <section><p class="kicker">Senaste träffsäkerhet per delprov</p><div class="card"><div class="dpbars" id="dpbars"></div>
+      <p class="hint" style="margin-top:14px">Streck = ungefärlig nivå för 1,2 (verbal ~74 %, kvant ~66 %).</p></div></section>
 
-  <section><h2>Insikter</h2><p class="sub">Vad datan säger om var du tappar poäng och om du är i takt mot 1,2.</p><div class="card"><div id="insights"></div></div></section>
-  <section><h2>Repetera — frågorna du missat</h2><p class="sub">Gå tillbaka till häftena och nöt exakt dessa. Grupperat per delprov, senaste först.</p><div class="card"><div id="review"></div></div></section>
+    <section><h2>Historik</h2><div class="tablewrap" id="histWrap"></div>
+      <div class="datarow"><button class="ghost" id="exportBtn">Exportera</button><button class="ghost" id="importBtn">Importera</button><button class="ghost" id="wipeBtn">Rensa allt</button><input type="file" id="importFile" accept="application/json" style="display:none"></div></section>
+  </div>
 
-  <section><h2>Historik</h2><div class="tablewrap" id="histWrap"></div>
-    <div class="datarow"><button class="ghost" id="exportBtn">Exportera</button><button class="ghost" id="importBtn">Importera</button><button class="ghost" id="wipeBtn">Rensa allt</button><input type="file" id="importFile" accept="application/json" style="display:none"></div></section>
+  <div class="page" id="page-insikter">
+    <section><h2>Insikter</h2><p class="sub">Vad datan säger om var du tappar poäng och om du är i takt mot 1,2.</p><div class="card"><div id="insights"></div></div></section>
+    <section><h2>Repetera — frågorna du missat</h2><p class="sub">Gå tillbaka till häftena och nöt exakt dessa. Grupperat per delprov, senaste först.</p><div class="card"><div id="review"></div></div></section>
+  </div>
+
+  <div class="page" id="page-traning">
+    <section><h2>Träna härnäst</h2><p class="sub">Delproven där du vinner mest poäng per timme, utifrån dina senaste resultat.</p><div class="card"><div class="recs" id="recs"></div></div></section>
+    <section><h2>Så tränar du mot 1,2</h2>
+      <div class="cols2">
+        <div class="card"><h4>Metoden</h4><ul><li><b>Riktiga gamla prov på tid</b> — kör pass under skarp tidspress i Prov-fliken.</li><li><b>Fellogg</b> — nöt exakt frågorna i Insikter → Repetera.</li><li><b>70–80 % på det svagaste</b> — se din flaskhals i Insikter.</li><li><b>Dagligt ordförråd</b> — 15–20 min i Anki (renaste hävstången för ORD/MEK).</li><li><b>Gissa alltid</b> — inga minuspoäng, lämna aldrig en ruta tom.</li></ul></div>
+        <div class="card"><h4>Veckorytm · ~8–12 h</h4><ul><li><b>Varje dag:</b> 15–20 min ordförråd.</li><li><b>2–3 kvällar:</b> ett provpass + gå igenom felen.</li><li><b>Helg:</b> ett helt prov på tid.</li></ul><h4 style="margin-top:16px">Kvant på teknik</h4><span class="tg">NOG: lär formatet · KVA: testa värden · DTK: uppskatta &amp; ta lätta först</span></div>
+      </div>
+      <div class="card" style="margin-top:14px"><h4>Gratis resurser</h4><ul class="reslist"><li><a href="https://www.studera.nu/hogskoleprov/" target="_blank" rel="noopener">studera.nu</a> — alla gamla prov, facit, normeringstabeller</li><li><a href="https://apps.ankiweb.net/" target="_blank" rel="noopener">Anki</a> — ordförråd med spaced repetition</li><li><a href="https://www.matteboken.se/" target="_blank" rel="noopener">Matteboken</a> — grunder för XYZ</li><li><a href="https://www.hpspelet.se/" target="_blank" rel="noopener">HP-spelet</a> — övningsfrågor</li></ul></div>
+    </section>
+  </div>
 
   <p class="foot"><b>Om normeringen:</b> skattat resultat är en uppskattning kalibrerad mot vt2025 — trenden är säkrast; rättningen mot facit är exakt. Data sparas bara i den här webbläsaren (exportera en kopia om du byter dator). <b>Källa:</b> UHR / studera.nu — provhäften bäddas in från studera.nu, facit och normering därifrån. Privat träningsverktyg.</p>
 
@@ -207,7 +243,7 @@
         if(i>n||my!==pdfToken)return;
         pdf.getPage(i).then(function(pg){
           if(my!==pdfToken)return;
-          var v0=pg.getViewport({scale:1}),scale=Math.max(0.4,(box.clientWidth-28)/v0.width),vp=pg.getViewport({scale:scale*1.6});
+          var v0=pg.getViewport({scale:1}),bw=box.clientWidth||640,scale=Math.max(0.4,(bw-28)/v0.width),vp=pg.getViewport({scale:scale*1.6});
           var c=document.createElement("canvas");c.width=vp.width;c.height=vp.height;box.appendChild(c);
           pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise.then(function(){page(i+1);});
         });
@@ -394,6 +430,8 @@
   function renderChips(){var passes=passesOf(currentProv());
     document.getElementById("passChips").innerHTML=passes.map(function(p){var d=draft[p.key];var cls="chip"+(d.graded?" done":"")+(p.key===currentKey?" cur":"");return '<span class="'+cls+'">'+p.label.replace("provpass","pass")+(d.graded?" ✓ "+d.score.right+"/40":"")+'</span>';}).join("");}
 
+  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function explFor(provId,passKey,q){var e=window.HP_EXPL;return (e&&e[provId]&&e[provId][passKey]&&e[provId][passKey][String(q)])||null;}
   function renderAnswerPane(p){
     var d=draft[p.key],ap=document.getElementById("answerpane");
     var html='<div class="timer"><span class="tlbl">⏱ Provpasset · 55 min</span><span class="tdisp" id="timer-'+p.key+'">55:00</span><button type="button" class="ghost mini" data-act="tstart">Start</button><button type="button" class="ghost mini" data-act="treset">Nollställ</button></div>';
@@ -404,7 +442,9 @@
         for(var o=0;o<s.opts;o++){var l=LETTERS[o],cls="opt";if(d.answers[i]===l)cls+=" sel";
           if(d.graded){if(l===p.facit[i])cls+=(d.answers[i]===l?" correct":" miss");if(l===d.answers[i]&&d.answers[i]!==p.facit[i])cls+=" wrong";}
           opts+='<button type="button" class="'+cls+'" data-q="'+i+'" data-l="'+l+'"'+(d.graded?" disabled":"")+'>'+l+'</button>';}
-        html+='<div class="qrow"><div class="qn">'+(i+1)+'.</div><div class="opts" data-q="'+i+'">'+opts+'</div></div>';}
+        var ex=d.graded?explFor(currentProv().id,p.key,i+1):null;
+        var exH=ex?'<div class="explrow"><button type="button" class="explbtn" data-eq="'+i+'">Visa förklaring</button><div class="expl" id="expl-'+i+'" hidden>'+(ex.f?'<span class="exwarn">⚠ osäker — dubbelkolla mot facit. </span>':'')+esc(ex.t)+'</div></div>':'';
+        html+='<div class="qrow"><div class="qn">'+(i+1)+'.</div><div class="opts" data-q="'+i+'">'+opts+'</div></div>'+exH;}
     });
     html+=d.graded?'<div class="passbtns"><button type="button" class="ghost mini" data-act="reset">Gör om passet</button></div>':'<div class="passbtns"><button type="button" class="primary mini" data-act="grade">Rätta passet</button><button type="button" class="ghost mini" data-act="reset">Rensa</button></div>';
     html+='<div id="res">'+(d.graded?resultHtml(p,d):"")+'</div>';
@@ -414,6 +454,7 @@
     ap.querySelector('[data-act="reset"]').addEventListener("click",function(){draft[p.key]={answers:new Array(40).fill(null),graded:false,score:null};renderAnswerPane(p);renderChips();});
     ap.querySelector('[data-act="tstart"]').addEventListener("click",function(){tToggle(p.key);});
     ap.querySelector('[data-act="treset"]').addEventListener("click",function(){tReset(p.key);});
+    ap.querySelectorAll(".explbtn").forEach(function(b){b.addEventListener("click",function(){var el=document.getElementById("expl-"+b.getAttribute("data-eq"));if(!el)return;var h=el.hasAttribute("hidden");if(h){el.removeAttribute("hidden");}else{el.setAttribute("hidden","");}b.textContent=h?"Dölj förklaring":"Visa förklaring";});});
     tRender(p.key);
   }
   function resultHtml(p,d){var sc=d.score,lines=SEG[p.t].map(function(s){return s.code+" "+sc.sub[s.code].r+"/"+sc.sub[s.code].t;}).join(" · ");
@@ -444,6 +485,14 @@
     sb.auth.onAuthStateChange(function(_e,session){var was=user;user=session?session.user:null;renderAuth();if(user&&(!was||was.id!==user.id))pullRemote();});
   }
   buildForProv();renderAll();
+  function showPage(p){var ps=["prov","resultat","insikter","traning"];if(ps.indexOf(p)<0)p="prov";
+    document.querySelectorAll(".page").forEach(function(el){el.classList.toggle("active",el.id==="page-"+p);});
+    document.querySelectorAll(".nav button").forEach(function(b){b.classList.toggle("active",b.getAttribute("data-page")===p);});
+    if(("#"+p)!==location.hash){try{history.replaceState(null,"","#"+p);}catch(e){}}
+    window.scrollTo(0,0);}
+  document.querySelectorAll(".nav button").forEach(function(b){b.addEventListener("click",function(){showPage(b.getAttribute("data-page"));});});
+  window.addEventListener("hashchange",function(){showPage((location.hash||"#prov").slice(1));});
+  showPage((location.hash||"#prov").slice(1));
 })();
 </script>
 </body></html>
