@@ -109,6 +109,7 @@
   .explbtn:hover{color:var(--coral-deep);}
   .expl{margin-top:5px;font-size:13px;color:var(--ink-soft);background:var(--slate-wash);border-radius:9px;padding:10px 12px;line-height:1.5;}
   .expl .exwarn{color:var(--warn);font-weight:600;}
+  .facitlbl{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--good);}
   .opt:disabled{cursor:default;}
   .passbtns{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;}
   button{font-family:var(--sans);font-size:13.5px;font-weight:600;border-radius:9px;padding:9px 15px;border:1px solid transparent;cursor:pointer;}
@@ -435,23 +436,26 @@
   function renderAnswerPane(p){
     var d=draft[p.key],ap=document.getElementById("answerpane");
     var html='<div class="timer"><span class="tlbl">⏱ Provpasset · 55 min</span><span class="tdisp" id="timer-'+p.key+'">55:00</span><button type="button" class="ghost mini" data-act="tstart">Start</button><button type="button" class="ghost mini" data-act="treset">Nollställ</button></div>';
+    var showFacit=d.graded||d.reveal;
     SEG[p.t].forEach(function(s){
       var perQ=Math.round(REC[s.code]*60/(s.to-s.from));
       html+='<div class="dphead">'+s.code+' · '+DP[s.code].name+' <span class="rec">rek. '+REC[s.code]+' min · ~'+perQ+' s/uppg.</span>'+(s.code==="ELF"?' <span class="elfwarn">(ej i häftet)</span>':'')+'</div>';
       for(var i=s.from;i<s.to;i++){var opts="";
         for(var o=0;o<s.opts;o++){var l=LETTERS[o],cls="opt";if(d.answers[i]===l)cls+=" sel";
-          if(d.graded){if(l===p.facit[i])cls+=(d.answers[i]===l?" correct":" miss");if(l===d.answers[i]&&d.answers[i]!==p.facit[i])cls+=" wrong";}
-          opts+='<button type="button" class="'+cls+'" data-q="'+i+'" data-l="'+l+'"'+(d.graded?" disabled":"")+'>'+l+'</button>';}
-        var ex=d.graded?explFor(currentProv().id,p.key,i+1):null;
-        var exH=ex?'<div class="explrow"><button type="button" class="explbtn" data-eq="'+i+'">Visa förklaring</button><div class="expl" id="expl-'+i+'" hidden>'+(ex.f?'<span class="exwarn">⚠ osäker — dubbelkolla mot facit. </span>':'')+esc(ex.t)+'</div></div>':'';
-        html+='<div class="qrow"><div class="qn">'+(i+1)+'.</div><div class="opts" data-q="'+i+'">'+opts+'</div></div>'+exH;}
+          if(showFacit){if(l===p.facit[i])cls+=(d.graded&&d.answers[i]===l?" correct":" miss");if(d.graded&&l===d.answers[i]&&d.answers[i]!==p.facit[i])cls+=" wrong";}
+          opts+='<button type="button" class="'+cls+'" data-q="'+i+'" data-l="'+l+'"'+(showFacit?" disabled":"")+'>'+l+'</button>';}
+        var extra="";
+        if(showFacit){var ex=explFor(currentProv().id,p.key,i+1);
+          extra='<div class="explrow"><span class="facitlbl">Rätt: '+p.facit[i]+'</span>'+(ex?' <button type="button" class="explbtn" data-eq="'+i+'">Visa förklaring</button><div class="expl" id="expl-'+i+'" hidden>'+(ex.f?'<span class="exwarn">⚠ osäker — dubbelkolla mot facit. </span>':'')+esc(ex.t)+'</div>':'')+'</div>';}
+        html+='<div class="qrow"><div class="qn">'+(i+1)+'.</div><div class="opts" data-q="'+i+'">'+opts+'</div></div>'+extra;}
     });
-    html+=d.graded?'<div class="passbtns"><button type="button" class="ghost mini" data-act="reset">Gör om passet</button></div>':'<div class="passbtns"><button type="button" class="primary mini" data-act="grade">Rätta passet</button><button type="button" class="ghost mini" data-act="reset">Rensa</button></div>';
+    html+=d.graded?'<div class="passbtns"><button type="button" class="ghost mini" data-act="reset">Gör om passet</button></div>':'<div class="passbtns"><button type="button" class="primary mini" data-act="grade">Rätta passet</button><button type="button" class="ghost mini" data-act="facit">'+(d.reveal?'Dölj facit':'Visa facit')+'</button><button type="button" class="ghost mini" data-act="reset">Rensa</button></div>';
     html+='<div id="res">'+(d.graded?resultHtml(p,d):"")+'</div>';
     ap.innerHTML=html;
-    if(!d.graded)ap.querySelectorAll(".opt").forEach(function(b){b.addEventListener("click",function(){var q=+b.getAttribute("data-q"),l=b.getAttribute("data-l");d.answers[q]=l;ap.querySelectorAll('.opts[data-q="'+q+'"] .opt').forEach(function(x){x.classList.toggle("sel",x.getAttribute("data-l")===l);});});});
+    if(!showFacit)ap.querySelectorAll(".opt").forEach(function(b){b.addEventListener("click",function(){var q=+b.getAttribute("data-q"),l=b.getAttribute("data-l");d.answers[q]=l;ap.querySelectorAll('.opts[data-q="'+q+'"] .opt').forEach(function(x){x.classList.toggle("sel",x.getAttribute("data-l")===l);});});});
     var g=ap.querySelector('[data-act="grade"]');if(g)g.addEventListener("click",function(){gradePass(p);});
-    ap.querySelector('[data-act="reset"]').addEventListener("click",function(){draft[p.key]={answers:new Array(40).fill(null),graded:false,score:null};renderAnswerPane(p);renderChips();});
+    var fb=ap.querySelector('[data-act="facit"]');if(fb)fb.addEventListener("click",function(){d.reveal=!d.reveal;renderAnswerPane(p);});
+    ap.querySelector('[data-act="reset"]').addEventListener("click",function(){draft[p.key]={answers:new Array(40).fill(null),graded:false,reveal:false,score:null};renderAnswerPane(p);renderChips();});
     ap.querySelector('[data-act="tstart"]').addEventListener("click",function(){tToggle(p.key);});
     ap.querySelector('[data-act="treset"]').addEventListener("click",function(){tReset(p.key);});
     ap.querySelectorAll(".explbtn").forEach(function(b){b.addEventListener("click",function(){var el=document.getElementById("expl-"+b.getAttribute("data-eq"));if(!el)return;var h=el.hasAttribute("hidden");if(h){el.removeAttribute("hidden");}else{el.setAttribute("hidden","");}b.textContent=h?"Dölj förklaring":"Visa förklaring";});});
